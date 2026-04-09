@@ -2,9 +2,12 @@
 
 ### Limit Evaluator Practice App
 This Streamlit application helps students practice evaluating limits involving square roots and rational expressions of the form:
+
 $$\lim_{x \to -1} \sqrt{\frac{x + 1}{x^2 + cx + b}}$$
 
-The app generates random coefficients b and c that ensure the expression evaluates to an indeterminate form 0/0 at x = -1. The chosen values ensure the limit simplifies to a clean fraction 1/a for some integer a
+### How it Works
+* **Indeterminate Forms:** The app generates random coefficients $b$ and $c$ that ensure the expression evaluates to $0/0$ at $x = -1$.
+* **Clean Solutions:** The values are mathematically constrained so that the limit always simplifies to a clean fraction $1/a$ for a specific integer $a$.
 
 ### Installation & Setup
 1. Clone the repository:
