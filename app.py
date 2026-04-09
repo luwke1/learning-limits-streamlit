@@ -6,6 +6,12 @@ import sympy as sp
 # 1. Streamlit State Management & Problem Generation
 # ==========================================
 
+def reset_game():
+    """Clears session state and reruns the app to generate a fresh problem."""
+    for key in list(st.session_state.keys()):
+        del st.session_state[key]
+    st.rerun()
+
 def initialize_state():
     """Initializes the session states for when a."""
     if 'a' not in st.session_state:
@@ -105,51 +111,57 @@ def main():
     
     st.write("---")
     
-    # User Input
-    user_input = st.text_input("Your answer (e.g., 1/2, 0.5):", key=f"input_{problem_id}")
+    # Determine if input should be locked
+    is_locked = st.session_state.status != 'unanswered'
+    
+    # User Input - Disabled if they already submitted
+    user_input = st.text_input(
+        "Your answer (e.g., 1/2):", 
+        key=f"input_{problem_id}", 
+        disabled=is_locked
+    )
 
     # Logic for checking the users answer when they submit, then updating the session state to reflect whether they were correct or not
-    if st.button("Submit Answer"):
-        if user_input.strip() != "":
-            if check_answer(user_input, a):
-                st.session_state.status = "correct"
+    if not is_locked:
+        if st.button("Submit Answer"):
+            if user_input.strip() != "":
+                if check_answer(user_input, a):
+                    st.session_state.status = "correct"
+                else:
+                    st.session_state.status = "incorrect"
+                st.rerun()
             else:
-                st.session_state.status = "incorrect"
-        else:
-            st.warning("Please enter an answer.")
+                st.warning("Please enter an answer.")
     
-    # When the user answers correctly we display a correct message, the correct answer, and buttons to either try a new problem or reveal the step-by-step solution
+    # When the user answers correctly we display a success message, the correct answer, and buttons to either try a new problem or reveal the step-by-step solution
     if st.session_state.status == "correct":
-        st.success(f"**Correct! Great job.** The limit is $1/{a}$.")
-        
+        st.success(f"🎉 **Correct!** Excellent work. The limit is $1/{a}$.")
         col1, col2 = st.columns(2)
         with col1:
             if st.button("🔄 Next Problem"):
-                # Clear everything and rerun
-                for key in list(st.session_state.keys()):
-                    del st.session_state[key]
-                st.rerun()
+                reset_game()
         with col2:
-            if st.button("📖 Reveal Step-by-Step Answer"):
+            if st.button("📖 View Steps"):
                 st.session_state.show_steps = True
 
-    # When the user answer incorrectly we display incorrect message, a tip, and a button to try a different problem       
+    # When the user answer incorrectly we display an encouraging message and buttons to either try a new problem or reveal the step-by-step solution  
     elif st.session_state.status == "incorrect":
-        st.error("Incorrect.")
-        st.info("💡 **Tip:** Try factoring the denominator into (x+1) (x+b).")
-        if st.button("Try a Different Problem"):
-            for key in list(st.session_state.keys()):
-                del st.session_state[key]
-            st.rerun()
+        st.error("❌ **Not quite right.**")
+        st.info("Don't worry! Limits can be tricky. You can review the solution below or try a fresh problem to practice again.")
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("🔄 Reset & Try New Problem"):
+                reset_game()
+        with col2:
+            if st.button("📖 Reveal Step-by-Step"):
+                st.session_state.show_steps = True
 
     # If the user clicks the reveal step-by-step answer button we show the solution steps and allow student to generate a new problem
     if st.session_state.show_steps:
-        st.write("---")
         show_step_by_step()
-        if st.button("Got it! Next Problem", key="final_next"):
-            for key in list(st.session_state.keys()):
-                del st.session_state[key]
-            st.rerun()
+        if st.button("Got it! Next Problem", key="bottom_next"):
+            reset_game()
 
 if __name__ == "__main__":
     main()
